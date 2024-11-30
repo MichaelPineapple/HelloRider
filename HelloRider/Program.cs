@@ -1,0 +1,3 @@
+﻿using HelloRider;
+
+Main.main();
