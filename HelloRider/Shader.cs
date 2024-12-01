@@ -4,8 +4,8 @@ namespace HelloRider;
 
 public class Shader
 {
-    int handle;
-    private bool disposedValue = false;
+    private int handle;
+    private bool disposedValue;
     
     public Shader(string vertexPath, string fragmentPath)
     {
@@ -13,19 +13,22 @@ public class Shader
         string fragmentShaderSource = File.ReadAllText(fragmentPath);
         
         int vertexShader = GL.CreateShader(ShaderType.VertexShader);
-        GL.ShaderSource(vertexShader, vertexShaderSource);
         int fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
+        
+        GL.ShaderSource(vertexShader, vertexShaderSource);
         GL.ShaderSource(fragmentShader, fragmentShaderSource);
         
         GL.CompileShader(vertexShader);
+        GL.CompileShader(fragmentShader);
+        
         GL.GetShader(vertexShader, ShaderParameter.CompileStatus, out int succ1);
+        GL.GetShader(fragmentShader, ShaderParameter.CompileStatus, out int succ2);
+        
         if (succ1 == 0)
         {
             string infoLog = GL.GetShaderInfoLog(vertexShader);
             Console.WriteLine(infoLog);
         }
-        GL.CompileShader(fragmentShader);
-        GL.GetShader(fragmentShader, ShaderParameter.CompileStatus, out int succ2);
         if (succ2 == 0)
         {
             string infoLog = GL.GetShaderInfoLog(fragmentShader);
@@ -36,6 +39,7 @@ public class Shader
 
         GL.AttachShader(handle, vertexShader);
         GL.AttachShader(handle, fragmentShader);
+        
         GL.LinkProgram(handle);
 
         GL.GetProgram(handle, GetProgramParameterName.LinkStatus, out int succ3);
@@ -47,21 +51,22 @@ public class Shader
         
         GL.DetachShader(handle, vertexShader);
         GL.DetachShader(handle, fragmentShader);
+        
         GL.DeleteShader(fragmentShader);
         GL.DeleteShader(vertexShader);
     }
+
+    public int getHandle()
+    {
+        return handle;
+    }
     
-    public void Use()
+    public void use()
     {
         GL.UseProgram(handle);
     }
     
-    public int GetAttribLocation(string attribName)
-    {
-        return GL.GetAttribLocation(handle, attribName);
-    }
-    
-    protected virtual void Dispose(bool disposing)
+    protected virtual void dispose(bool disposing)
     {
         if (!disposedValue)
         {
@@ -78,9 +83,9 @@ public class Shader
         }
     }
     
-    public void Dispose()
+    public void dispose()
     {
-        Dispose(true);
+        dispose(true);
         GC.SuppressFinalize(this);
     }
 }

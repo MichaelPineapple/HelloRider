@@ -11,18 +11,24 @@ public class Game : GameWindow
     private int vertexArrayObject;
     private int elementBufferObject;
     private Shader shader;
-    private bool bruh = true;
+    private bool bruh;
     
     private float[] vertices = {
-        0.5f,  0.5f, 0.0f,  // top right
-        0.5f, -0.5f, 0.0f,  // bottom right
-        -0.5f, -0.5f, 0.0f,  // bottom left
-        -0.5f,  0.5f, 0.0f   // top left
+        0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  // top right
+        0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom left
+        -0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 1.0f, // top left
     };
 
     uint[] indices = {  // note that we start from 0!
         0, 1, 3,   // first triangle
         1, 2, 3    // second triangle
+    };
+    
+    float[] texCoords = {
+        0.0f, 0.0f,  // lower-left corner  
+        1.0f, 0.0f,  // lower-right corner
+        0.5f, 1.0f   // top-center corner
     };
 
     public Game(int width, int height, string title)
@@ -40,15 +46,18 @@ public class Game : GameWindow
         GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBufferObject);
         GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.DynamicDraw);
 
-        shader = new Shader("../../../shader.vert", "../../../shader.frag");
+        shader = new Shader("../../../shaders/shader.vert", "../../../shaders/shader.frag");
         
         vertexArrayObject = GL.GenVertexArray();
         GL.BindVertexArray(vertexArrayObject);
         GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBufferObject);
         GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.DynamicDraw);
-        int location = shader.GetAttribLocation("aPosition");
-        GL.VertexAttribPointer(location, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+       
+        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 0);
         GL.EnableVertexAttribArray(0);
+        
+        GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 3 * sizeof(float));
+        GL.EnableVertexAttribArray(1);
         
         elementBufferObject = GL.GenBuffer();
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, elementBufferObject);
@@ -64,14 +73,7 @@ public class Game : GameWindow
     protected override void OnUpdateFrame(FrameEventArgs e)
     {
         base.OnUpdateFrame(e);
-        if (KeyboardState.IsKeyPressed(Keys.E))
-        {
-            bruh = !bruh;
-        }
-        if (KeyboardState.IsKeyPressed(Keys.W))
-        {
-            vertices[0] = 0.5f;
-        }
+        if (KeyboardState.IsKeyPressed(Keys.E)) bruh = !bruh;
     }
     
     protected override void OnRenderFrame(FrameEventArgs e)
@@ -79,19 +81,28 @@ public class Game : GameWindow
         base.OnRenderFrame(e);
 
         GL.Clear(ClearBufferMask.ColorBufferBit);
-        shader.Use();
-        GL.BindVertexArray(vertexArrayObject);
 
-        if (bruh)
-        {
-            GL.DrawElements(PrimitiveType.Triangles, indices.Length, DrawElementsType.UnsignedInt, 0);
-        }
-
+        onRender();
+        
         SwapBuffers();
+    }
+
+    private void onRender()
+    {
+        shader.use();
+        
+        GL.BindVertexArray(vertexArrayObject);
+        
+        float hue = 1.0f;
+        if (bruh) hue = 0.0f;
+        //int vertexColorLocation = GL.GetUniformLocation(shader.getHandle(), "color");
+        //GL.Uniform4(vertexColorLocation, hue, 1.0f, 0.0f, 1.0f);
+        
+        GL.DrawElements(PrimitiveType.Triangles, indices.Length, DrawElementsType.UnsignedInt, 0);
     }
 
     protected override void OnUnload()
     {
-        shader.Dispose();
+        shader.dispose();
     }
 }
