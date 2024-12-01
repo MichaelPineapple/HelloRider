@@ -40,7 +40,7 @@ public class Game : GameWindow
         GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBufferObject);
         GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.DynamicDraw);
 
-        shader = new Shader("shader.vert", "shader.frag");
+        shader = new Shader("../../../shader.vert", "../../../shader.frag");
         
         vertexArrayObject = GL.GenVertexArray();
         GL.BindVertexArray(vertexArrayObject);
