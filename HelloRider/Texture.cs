@@ -7,11 +7,10 @@ public class Texture
 {
     private int handle;
 
-    public Texture(string path, TextureUnit unit)
+    public Texture(string path)
     {
         handle = GL.GenTexture();
         
-        GL.ActiveTexture(TextureUnit.Texture0);
         GL.BindTexture(TextureTarget.Texture2D, handle);
         
         StbImage.stbi_set_flip_vertically_on_load(1);

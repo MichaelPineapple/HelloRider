@@ -1,15 +1,18 @@
 #version 330 core
 
-layout (location = 0) in vec3 vert;
-layout (location = 1) in vec2 tex;
-layout (location = 2) in vec3 color;
+in vec3 aVert;
+in vec2 aTex;
+in vec3 aColor;
 
 out vec3 _color;
 out vec2 _tex;
 
+uniform vec3 offset;
+
 void main()
 {
-    gl_Position = vec4(vert, 1.0);
-    _color = color;
-    _tex = tex;
+    
+    gl_Position = vec4(aVert + offset, 1.0);
+    _color = aColor;
+    _tex = aTex;
 }

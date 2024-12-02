@@ -56,6 +56,16 @@ public class Shader
         GL.DeleteShader(vertexShader);
     }
     
+    public int getAttribLocation(string name)
+    {
+        return GL.GetAttribLocation(handle, name);
+    }
+
+    public int getUniformLocation(string name)
+    {
+        return GL.GetUniformLocation(handle, name);
+    }
+    
     public void setInt(string name, int value)
     {
         int location = GL.GetUniformLocation(handle, name);

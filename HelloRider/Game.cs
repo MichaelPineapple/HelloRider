@@ -14,20 +14,13 @@ public class Game : GameWindow
     private Texture textureA;
     private Texture textureB;
     private bool bruh;
-    
-    // private float[] vertices = {
-    //     0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  // top right
-    //     0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom right
-    //     -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom left
-    //     -0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 1.0f, // top left
-    // };
 
     private float[] vertices =
     {
-         0.5f,  0.5f, 0.0f,    1.0f, 1.0f,    1.0f, 0.0f, 0.0f, // top right
-         0.5f, -0.5f, 0.0f,    1.0f, 0.0f,    1.0f, 0.0f, 1.0f, // bottom right
-        -0.5f, -0.5f, 0.0f,    0.0f, 0.0f,    0.0f, 0.0f, 1.0f, // bottom left
-        -0.5f,  0.5f, 0.0f,    0.0f, 1.0f,    1.0f, 0.0f, 1.0f  // top left
+         0.25f,  0.25f, 0.0f,    1.0f, 1.0f,    1.0f, 0.0f, 0.0f, // top right
+         0.25f, -0.25f, 0.0f,    1.0f, 0.0f,    1.0f, 0.0f, 1.0f, // bottom right
+        -0.25f, -0.25f, 0.0f,    0.0f, 0.0f,    0.0f, 0.0f, 1.0f, // bottom left
+        -0.25f,  0.25f, 0.0f,    0.0f, 1.0f,    1.0f, 0.0f, 1.0f  // top left
     };
 
     uint[] indices = 
@@ -52,25 +45,29 @@ public class Game : GameWindow
         GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.DynamicDraw);
 
         shaderA = new Shader("../../../shaders/shader.vert", "../../../shaders/shader.frag");
-        textureA = new Texture("../../../textures/crate.jpg", TextureUnit.Texture0);
-        textureB = new Texture("../../../textures/awesomeface.png", TextureUnit.Texture1);
-        
+        shaderA.use();
         shaderA.setInt("texture0", 0);
         shaderA.setInt("texture1", 1);
+        
+        textureA = new Texture("../../../textures/crate.jpg");
+        textureB = new Texture("../../../textures/awesomeface.png");
         
         vertexArrayObject = GL.GenVertexArray();
         GL.BindVertexArray(vertexArrayObject);
         GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBufferObject);
         GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.DynamicDraw);
-       
-        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 0);
-        GL.EnableVertexAttribArray(0);
+
+        int aVert = shaderA.getAttribLocation("aVert");
+        int aTex = shaderA.getAttribLocation("aTex");
+        int aColor = shaderA.getAttribLocation("aColor");
         
-        GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 8 * sizeof(float), 3 * sizeof(float));
-        GL.EnableVertexAttribArray(1);
+        GL.VertexAttribPointer(aVert, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 0);
+        GL.VertexAttribPointer(aTex, 2, VertexAttribPointerType.Float, false, 8 * sizeof(float), 3 * sizeof(float));
+        GL.VertexAttribPointer(aColor, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 5 * sizeof(float));
         
-        GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 5 * sizeof(float));
-        GL.EnableVertexAttribArray(2);
+        GL.EnableVertexAttribArray(aVert);
+        GL.EnableVertexAttribArray(aTex);
+        GL.EnableVertexAttribArray(aColor);
         
         elementBufferObject = GL.GenBuffer();
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, elementBufferObject);
@@ -95,17 +92,24 @@ public class Game : GameWindow
 
         GL.Clear(ClearBufferMask.ColorBufferBit);
 
-        textureA.use(TextureUnit.Texture0);
-        textureB.use(TextureUnit.Texture1);
+        textureA.use(TextureUnit.Texture1);
+        textureB.use(TextureUnit.Texture0);
         shaderA.use();
         
         GL.BindVertexArray(vertexArrayObject);
+
+        float hue = 1.0f;
+        if (bruh) hue = 0.5f;
         
-        // float hue = 1.0f;
-        // if (bruh) hue = 0.0f;
-        //int vertexColorLocation = GL.GetUniformLocation(shader.getHandle(), "color");
-        //GL.Uniform4(vertexColorLocation, hue, 1.0f, 0.0f, 1.0f);
+        int ulColor = shaderA.getUniformLocation("color2");
+        int ulOffset = shaderA.getUniformLocation("offset");
         
+        GL.Uniform3(ulOffset, -0.5f, 0.0f, 0.0f);
+        GL.Uniform4(ulColor, 1.0f, 1.0f, 1.0f, 1.0f);
+        GL.DrawElements(PrimitiveType.Triangles, indices.Length, DrawElementsType.UnsignedInt, 0);
+        
+        GL.Uniform3(ulOffset, 0.5f, 0.0f, 0.0f);
+        GL.Uniform4(ulColor, hue, hue, hue, hue);
         GL.DrawElements(PrimitiveType.Triangles, indices.Length, DrawElementsType.UnsignedInt, 0);
         
         SwapBuffers();
