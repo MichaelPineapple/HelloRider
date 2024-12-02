@@ -55,10 +55,11 @@ public class Shader
         GL.DeleteShader(fragmentShader);
         GL.DeleteShader(vertexShader);
     }
-
-    public int getHandle()
+    
+    public void setInt(string name, int value)
     {
-        return handle;
+        int location = GL.GetUniformLocation(handle, name);
+        GL.Uniform1(location, value);
     }
     
     public void use()
