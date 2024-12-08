@@ -4,15 +4,14 @@ in vec3 aVert;
 in vec2 aTex;
 in vec3 aColor;
 
-out vec3 _color;
 out vec2 _tex;
 
-uniform vec3 offset;
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
 
 void main()
 {
-    
-    gl_Position = vec4(aVert + offset, 1.0);
-    _color = aColor;
+    gl_Position = vec4(aVert, 1.0) * model * view * projection;
     _tex = aTex;
 }

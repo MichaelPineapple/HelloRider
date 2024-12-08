@@ -1,4 +1,7 @@
+using System.Diagnostics.Contracts;
+using Microsoft.VisualBasic.CompilerServices;
 using OpenTK.Graphics.OpenGL4;
+using OpenTK.Mathematics;
 
 namespace HelloRider;
 
@@ -70,6 +73,12 @@ public class Shader
     {
         int location = GL.GetUniformLocation(handle, name);
         GL.Uniform1(location, value);
+    }
+
+    public void setMatrix4(string name, Matrix4 value)
+    {
+        int location = GL.GetUniformLocation(handle, name);
+        GL.UniformMatrix4(location, true, ref value);
     }
     
     public void use()
