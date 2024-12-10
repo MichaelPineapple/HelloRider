@@ -74,7 +74,7 @@ public class Shader
         int location = GL.GetUniformLocation(handle, name);
         GL.Uniform1(location, value);
     }
-
+    
     public void setMatrix4(string name, Matrix4 value)
     {
         int location = GL.GetUniformLocation(handle, name);

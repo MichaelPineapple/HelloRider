@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Diagnostics;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
@@ -22,52 +23,11 @@ public class Game : GameWindow
     private Stopwatch watch;
     
     private Camera camera;
+
+    private List<Cube> cubesList = new List<Cube>();
+
+    private Random rnd = new Random();
     
-    float[] cube_vertices = {
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-        0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-    };
-
-
     public Game(int width, int height, string title)
         : base(GameWindowSettings.Default, new NativeWindowSettings() { ClientSize = (width, height), Title = title })
     {
@@ -87,7 +47,7 @@ public class Game : GameWindow
 
         int vertexBufferObject = GL.GenBuffer();
         GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBufferObject);
-        GL.BufferData(BufferTarget.ArrayBuffer, cube_vertices.Length * sizeof(float), cube_vertices, BufferUsageHint.StaticDraw);
+        GL.BufferData(BufferTarget.ArrayBuffer, Cube.VERTICIES.Length * sizeof(float), Cube.VERTICIES, BufferUsageHint.StaticDraw);
         
         shaderA = new Shader("../../../shaders/shader.vert", "../../../shaders/shader.frag");
         shaderA.use();
@@ -115,6 +75,15 @@ public class Game : GameWindow
         float aspectRatio = Size.X / (float)Size.Y;
         camera = new Camera(Vector3.UnitZ * 3, 1.5f, aspectRatio);
         CursorState = CursorState.Grabbed;
+
+        int range = 5;
+        for (int i = 0; i < 20; i++)
+        {
+            Vector3 pos = new Vector3((float)rnd.Next(-range, range), (float)rnd.Next(-range, range), (float)rnd.Next(-range, range));
+            Vector3 rot = new Vector3((float)rnd.Next(-range, range), (float)rnd.Next(-range, range), (float)rnd.Next(-range, range));
+            Cube x = new Cube(pos, rot);
+            cubesList.Add(x);
+        }
     }
     
     protected override void OnFramebufferResize(FramebufferResizeEventArgs e)
@@ -153,20 +122,23 @@ public class Game : GameWindow
         shaderA.setMatrix4("view", camera.GetViewMatrix());
         shaderA.setMatrix4("projection", camera.GetProjectionMatrix());
         
-        double time = watch.Elapsed.TotalSeconds;
-        Matrix4 model = Matrix4.CreateRotationY((float)MathHelper.DegreesToRadians(time * 10));
-        shaderA.setMatrix4("model", model);
-        
+        float spin = (float)watch.Elapsed.TotalSeconds * 1.0f;
         int ulColor = shaderA.getUniformLocation("color2");
-        GL.Uniform4(ulColor, 1.0f, 1.0f, 1.0f, 1.0f);
-        
-        GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
 
-        model = Matrix4.CreateRotationY((float)MathHelper.DegreesToRadians(time * -10)) * Matrix4.CreateTranslation(2.0f, 1.0f, 1.0f);
-        shaderA.setMatrix4("model", model);
-        GL.Uniform4(ulColor, 0.5f, 0.5f, 1.0f, 1.0f);
-        
-        GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
+        Matrix4 model;
+
+        for (int i = 0; i < cubesList.Count; i++)
+        {
+            Cube x = cubesList[i];
+            Vector3 rot = x.getRotation();
+            model = Matrix4.CreateRotationX(rot.X+spin);
+            model *= Matrix4.CreateRotationY(rot.Y+spin);
+            model *= Matrix4.CreateRotationZ(rot.Z-spin);
+            model *= Matrix4.CreateTranslation(x.getPosition());
+            shaderA.setMatrix4("model", model);
+            GL.Uniform4(ulColor, 1.0f, 1.0f, 1.0f, 1.0f);
+            GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
+        }
         
         SwapBuffers();
     }
